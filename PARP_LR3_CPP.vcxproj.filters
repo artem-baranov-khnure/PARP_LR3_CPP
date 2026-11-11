@@ -18,5 +18,13 @@
     <ClCompile Include="PARP_LR3_CPP.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="TasksPartTwo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="TasksPartTwo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

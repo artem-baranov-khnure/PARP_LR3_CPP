@@ -1,6 +1,7 @@
-#include <iostream>
+#include "TasksPartTwo.h"
 
-int main()
-{
-    std::cout << "Hello World!\n";
+int main() {
+    TestTask67();
+    TestTask8();
+    return 0;
 }
