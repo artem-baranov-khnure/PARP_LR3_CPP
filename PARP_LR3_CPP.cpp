@@ -10,6 +10,7 @@
 #include <chrono>
 #include <windows.h>
 #include <intrin.h>
+#include "TasksPartTwo.h"
 
 using namespace std;
 
@@ -896,7 +897,8 @@ int main()
 
 
 
-
+    TestTask67();
+    TestTask8();
     system("pause");
 
     return 0;
