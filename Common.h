@@ -1,9 +1,5 @@
 #pragma once
 
-// Shared helpers used by both parts of the lab:
-//   - PARP_LR3_CPP.cpp (tasks 1-5, 9)
-//   - TasksPartTwo.cpp (tasks 6-8)
-
 #include <cstddef>
 #include <cstdint>
 #include <string>
@@ -15,7 +11,6 @@ const int REPEAT_COUNT = 10;
 // Alignment for all SIMD arrays (enough for SSE - 16, AVX - 32, cache line - 64)
 const size_t SIMD_ALIGNMENT = 64;
 
-// Processor / SIMD support -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 struct SIMDInfo {
     bool mmx, sse, sse2, sse3, ssse3, sse41, sse42;
     bool sse4a, amd_3dnow, amd_3dnow2, amd_sse5;
@@ -29,7 +24,6 @@ struct SIMDInfo {
 int MaxFunctionNumber(unsigned int* ExtMaxFunctionNumber);
 SIMDInfo GetSIMDSupport();
 
-// Time -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 double GetTimeSeconds();
 
 // Calls Function once (warm-up), then REPEAT_COUNT times measures RepeatCount calls.
@@ -53,18 +47,15 @@ double MeasureSeconds(Function&& Func, size_t RepeatCount) {
     return MinTime;
 }
 
-// Number of calls so that one sample processes about 32M bytes-elements
+// Calls per sample: 2^25 / n, clamped to [2, 200000]
 size_t RepeatCountForSize(size_t n);
 
-// Memory -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void* AllocateAligned(size_t Bytes);
 void FreeAligned(void* p);
 
-// Random -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 uint32_t Random32();
 float RandomFloat(float Min, float Max);
 
-// Output -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 const char* YesNo(bool Value);
 std::string FormatNumber(double Value, int Precision);
 
@@ -75,5 +66,4 @@ struct Result {
     double ScalarTime, SSETime, AVXTime;
 };
 
-// Prints all results with Size == n
 void PrintResults(const std::vector<Result>& Results, size_t n);

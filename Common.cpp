@@ -14,7 +14,6 @@ using namespace std;
 
 
 
-// Processor / SIMD support -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // "Параллелизм150903_u.pdf", p. 132
 int MaxFunctionNumber(unsigned int* ExtMaxFunctionNumber) {
     int a[4];
@@ -85,7 +84,6 @@ SIMDInfo GetSIMDSupport() {
 
 
 
-// Time -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // https://en.cppreference.com/w/cpp/chrono/steady_clock
 double GetTimeSeconds() {
     using clock = std::chrono::steady_clock;
@@ -105,7 +103,6 @@ size_t RepeatCountForSize(size_t n) {
 
 
 
-// Memory -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // https://learn.microsoft.com/en-us/cpp/c-runtime-library/reference/aligned-malloc
 void* AllocateAligned(size_t Bytes) {
     return _aligned_malloc(Bytes, SIMD_ALIGNMENT);
@@ -117,7 +114,6 @@ void FreeAligned(void* p) {
 
 
 
-// Random -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 uint32_t Random32() {
     return ((uint32_t)rand() << 16) ^ ((uint32_t)rand() << 1) ^ (uint32_t)rand();
 }
@@ -129,7 +125,6 @@ float RandomFloat(float Min, float Max) {
 
 
 
-// Output -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 const char* YesNo(bool Value) {
     return Value ? "yes" : "no";
 }

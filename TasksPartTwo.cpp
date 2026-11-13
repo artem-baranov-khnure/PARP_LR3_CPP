@@ -12,7 +12,7 @@ using namespace std;
 
 namespace {
 
-// "Порівняти обчислювальну складність для цих функцій для довжини масиву 4096"
+// "Лр-3-2.pdf", p. 3, task 7
 const size_t ARRAY_SIZE = 4096;
 
 const size_t FLOATS_PER_SSE  = sizeof(__m128) / sizeof(float);
@@ -172,7 +172,6 @@ __declspec(noinline) void AVXMulComplex(const ComplexF* y, const ComplexF* z, Co
 
 
 
-// Verification -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 template <typename T>
 bool AreEqual(const T* Expected, const T* Actual, size_t n) {
     const double RelativeTolerance = 1e-5;
@@ -191,7 +190,6 @@ bool AreEqual(const ComplexF* Expected, const ComplexF* Actual, size_t n) {
 
 
 
-// Running -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 template <typename T>
 using SqrtFunction = void (*)(const T*, T*, size_t);
 
