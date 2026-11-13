@@ -7,41 +7,13 @@
 #include <cstdlib>
 #include <cstring>
 #include <cstdint>
-#include <chrono>
 #include <windows.h>
 #include <intrin.h>
+#include "Common.h"
 #include "TasksPartTwo.h"
 
 using namespace std;
 
-
-const int REPEAT_COUNT = 10;
-
-
-
-// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-// https://en.cppreference.com/w/cpp/chrono/steady_clock
-double GetTimeSeconds() {
-    using clock = std::chrono::steady_clock;
-    return std::chrono::duration<double>(clock::now().time_since_epoch()).count();
-}
-
-// https://learn.microsoft.com/en-us/cpp/c-runtime-library/reference/aligned-malloc
-void* AllocateAligned(size_t Bytes) {
-    return _aligned_malloc(Bytes, 64);
-}
-
-void FreeAligned(void* p) {
-    _aligned_free(p);
-}
-
-const char* YesNo(bool Value) {
-    return Value ? "yes" : "no";
-}
-
-uint32_t Random32() {
-    return ((uint32_t)rand() << 16) ^ ((uint32_t)rand() << 1) ^ (uint32_t)rand();
-}
 
 
 
@@ -60,21 +32,6 @@ const char* GetProcessorTypeName(ProcessorType Type) {
     }
 
     return "OTHER";
-}
-
-// "Параллелизм150903_u.pdf", p. 132
-int MaxFunctionNumber(unsigned int* ExtMaxFunctionNumber) {
-    int a[4];
-    int b = (int)0x80000000;
-
-    if (ExtMaxFunctionNumber != NULL) {
-        __cpuid(a, b);
-        *ExtMaxFunctionNumber = (unsigned int)a[0];
-    }
-
-    b = 0;
-    __cpuid(a, b);
-    return a[0];
 }
 
 // "Пз-3.pdf", p. 41-42
@@ -123,69 +80,6 @@ bool DefineExtendProcessorType(char BrandString[49]) {
     return true;
 }
 
-struct SIMDInfo {
-    bool mmx, sse, sse2, sse3, ssse3, sse41, sse42;
-    bool sse4a, amd_3dnow, amd_3dnow2, amd_sse5;
-    bool osxsave, os_avx;
-    bool avx, fma, avx2;
-    int max_function;
-    unsigned int ext_max_function;
-    unsigned __int64 xcr0;
-};
-
-// "Пз-3.pdf", p. 43, "Параллелизм150903_u.pdf", p. 135-136
-SIMDInfo GetSIMDSupport() {
-    SIMDInfo Info;
-    memset(&Info, 0, sizeof(Info));
-
-    int Regs[4];
-    Info.max_function = MaxFunctionNumber(&Info.ext_max_function);
-
-    if (Info.max_function >= 1) {
-        __cpuid(Regs, 1);
-        int ecx = Regs[2], edx = Regs[3];
-
-        Info.mmx = (edx >> 23) & 1;
-        Info.sse = (edx >> 25) & 1;
-        Info.sse2 = (edx >> 26) & 1;
-
-        Info.sse3 = (ecx >> 0) & 1;
-        Info.ssse3 = (ecx >> 9) & 1;
-        Info.sse41 = (ecx >> 19) & 1;
-        Info.sse42 = (ecx >> 20) & 1;
-        Info.fma = (ecx >> 12) & 1;
-
-        bool AVXBit = (ecx >> 28) & 1;
-
-        Info.osxsave = (ecx >> 27) & 1;
-
-        if (Info.osxsave && AVXBit) {
-            Info.xcr0 = _xgetbv(_XCR_XFEATURE_ENABLED_MASK);
-            Info.os_avx = (Info.xcr0 & 4) != 0;
-        }
-        Info.avx = AVXBit && Info.os_avx;
-    }
-
-    if (Info.max_function >= 7) {
-        __cpuid(Regs, 7);
-
-        bool AVX2Bit = (Regs[1] >> 5) & 1;
-
-        Info.avx2 = AVX2Bit && Info.fma && Info.avx;
-    }
-
-    if (Info.ext_max_function >= 0x80000001u) {
-        __cpuid(Regs, (int)0x80000001);
-
-        Info.sse4a = (Regs[2] >> 6) & 1;
-        Info.amd_sse5 = (Regs[2] >> 11) & 1;
-        Info.amd_3dnow = (Regs[3] >> 31) & 1;
-        Info.amd_3dnow2 = (Regs[3] >> 30) & 1;
-    }
-
-    return Info;
-}
-
 // "Пз-3.pdf", p. 40-41, 43
 bool AVX2ProcessorSupport() {
     bool b = false; int reg[4];
@@ -207,7 +101,7 @@ bool AVX2OSSupport() {
         return false;
     }
 
-    return (_xgetbv(_XCR_XFEATURE_ENABLED_MASK) & 4) != 0;
+    return (_xgetbv(_XCR_XFEATURE_ENABLED_MASK) & 6) == 6;
 }
 
 bool AVX2Support() {
@@ -475,38 +369,8 @@ using AbsSumFunction = void (*)(const T*, const T*, T*, size_t);
 
 template <typename T>
 double TimeAbsSum(AbsSumFunction<T> Function, const T* y, const T* z, T* x, size_t n) {
-    size_t RepeatCount = (size_t)((1ull << 25) / n);
-    if (RepeatCount < 2) {
-        RepeatCount = 2;
-    }
-
-    if (RepeatCount > 200000) {
-        RepeatCount = 200000;
-    }
-
-    Function(y, z, x, n);
-
-    double MinTime = 1.0e9;
-    for (int s = 0; s < REPEAT_COUNT; s++) {
-        double Start = GetTimeSeconds();
-
-        for (size_t r = 0; r < RepeatCount; r++) {
-            Function(y, z, x, n);
-        }
-        double Time = (GetTimeSeconds() - Start) / RepeatCount;
-
-        if (Time < MinTime) {
-            MinTime = Time;
-        }
-    }
-    return MinTime;
+    return MeasureSeconds([&] { Function(y, z, x, n); }, RepeatCountForSize(n));
 }
-
-struct Result {
-    string Type;
-    size_t Size;
-    double ScalarTime, SSETime, AVXTime;
-};
 
 template <typename T>
 void RunAbsSum(const char* TypeName, size_t n, AbsSumFunction<T> ScalarFunction,
@@ -565,44 +429,6 @@ void RunAbsSum(const char* TypeName, size_t n, AbsSumFunction<T> ScalarFunction,
     FreeAligned(x);
 }
 
-string FormatNumber(double Value, int Precision) {
-    char Text[64];
-    snprintf(Text, sizeof(Text), "%.*f", Precision, Value);
-    return Text;
-}
-
-void PrintResults(const vector<Result>& Results, size_t n) {
-    cout << "Array size = " << n << "\n";
-    cout << left << setw(8) << "Type" << right
-        << setw(18) << "Scalar, microsec" << setw(18) << "SSE, microsec" << setw(18) << "AVX, microsec"
-        << setw(14) << "SSE speedup" << setw(14) << "AVX speedup" << "\n";
-
-    for (size_t i = 0; i < Results.size(); i++) {
-        const Result& r = Results[i];
-        if (r.Size != n) {
-            continue;
-        }
-
-        string SSETimeText = "-";
-        string AVXTimeText = "-";
-        string SSESpeedupText = "-";
-        string AVXSpeedupText = "-";
-
-        if (r.SSETime >= 0) {
-            SSETimeText = FormatNumber(r.SSETime * 1e6, 3);
-            SSESpeedupText = FormatNumber(r.ScalarTime / r.SSETime, 2);
-        }
-        if (r.AVXTime >= 0) {
-            AVXTimeText = FormatNumber(r.AVXTime * 1e6, 3);
-            AVXSpeedupText = FormatNumber(r.ScalarTime / r.AVXTime, 2);
-        }
-
-        cout << left << setw(8) << r.Type << right
-            << setw(18) << FormatNumber(r.ScalarTime * 1e6, 3) << setw(18) << SSETimeText << setw(18) << AVXTimeText
-            << setw(14) << SSESpeedupText << setw(14) << AVXSpeedupText << "\n";
-    }
-    cout << "\n";
-}
 
 
 
@@ -897,8 +723,8 @@ int main()
 
 
 
-    TestTask67();
-    TestTask8();
+    RunSqrt(Info);
+    RunComplexMultiply(Info);
     system("pause");
 
     return 0;
