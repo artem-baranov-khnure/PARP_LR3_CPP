@@ -727,17 +727,20 @@ int main()
         PrintResults(Results, n);
     }
 
+    cout << "\n\n\n" << endl;
+    cout << "Task 6, 7 " << separator << endl << endl;
+    RunSqrt(Info);
+
+    cout << "\n\n\n" << endl;
+    cout << "Task 8 " << separator << endl << endl;
+    RunComplexMultiply(Info);
 
     cout << "\n\n\n" << endl;
     cout << "Task 9 " << separator << endl << endl;
 
     RunShift(Info);
     cout << "\n\n\n" << endl;
-
-
-
-    RunSqrt(Info);
-    RunComplexMultiply(Info);
+    
     system("pause");
 
     return 0;
