@@ -29,7 +29,7 @@ int MaxFunctionNumber(unsigned int* ExtMaxFunctionNumber) {
     return a[0];
 }
 
-// "Пз-3.pdf", p. 43, "Параллелизм150903_u.pdf", p. 135-136
+// "Пз-3.pdf", p. 43-44, "Параллелизм150903_u.pdf", p. 135-136
 SIMDInfo GetSIMDSupport() {
     SIMDInfo Info;
     memset(&Info, 0, sizeof(Info));
@@ -57,7 +57,7 @@ SIMDInfo GetSIMDSupport() {
 
         if (Info.osxsave && AVXBit) {
             Info.xcr0 = _xgetbv(_XCR_XFEATURE_ENABLED_MASK);
-            Info.os_avx = (Info.xcr0 & 6) == 6;  // XMM and YMM state saved by OS
+            Info.os_avx = (Info.xcr0 & 6) == 6;
         }
         Info.avx = AVXBit && Info.os_avx;
     }

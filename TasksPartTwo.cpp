@@ -12,7 +12,6 @@ using namespace std;
 
 namespace {
 
-// "Лр-3-2.pdf", p. 3, task 7
 const size_t ARRAY_SIZE = 4096;
 
 const size_t FLOATS_PER_SSE  = sizeof(__m128) / sizeof(float);

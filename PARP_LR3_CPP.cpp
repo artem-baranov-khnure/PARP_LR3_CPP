@@ -436,9 +436,22 @@ void RunAbsSum(const char* TypeName, size_t n, AbsSumFunction<T> ScalarFunction,
 // "Параллелизм150903_u.pdf", p. 121
 void shlBit(const uint32_t* up, uint32_t* ures) {
     memset(ures, 0, 64);
+    uint32_t SrcMask = 1u;
+    uint32_t DstMask = 2u;
+#pragma loop(no_vector)
     for (int k = 1; k < 512; k++) {
-        uint32_t bit = (up[(k - 1) >> 5] >> ((k - 1) & 31)) & 1u;
-        ures[k >> 5] |= bit << (k & 31);
+        if (up[(k - 1) >> 5] & SrcMask) {
+            ures[k >> 5] |= DstMask;
+        }
+        SrcMask <<= 1;
+        if (SrcMask == 0) {
+            SrcMask = 1u;
+        }
+        
+        DstMask <<= 1;
+        if (DstMask == 0) {
+            DstMask = 1u;
+        }
     }
 }
 
